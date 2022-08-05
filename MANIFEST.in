@@ -1,0 +1,2 @@
+include versioneer.py
+include pyoasiscap/_version.py
