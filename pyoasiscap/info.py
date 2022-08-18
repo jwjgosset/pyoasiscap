@@ -4,9 +4,9 @@ CAP v1.2
 
 ..  codeauthor:: Charles Blais
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from enum import Enum
 
@@ -120,3 +120,60 @@ class Info:
     resource: Optional[List[Resource]] = field(default=None)
 
     area: Optional[List[Area]] = field(default=None)
+
+    def asdict(self) -> Dict:
+        '''
+        asdict is not able to convert enum there this routine will make sure
+        this happens
+        '''
+        obj = asdict(self)
+        for idx, category in enumerate(self.category):
+            obj['category'][idx] = category.value
+        obj['urgency'] = self.urgency.value
+        obj['severity'] = self.severity.value
+        obj['certainty'] = self.certainty.value
+        if self.responseType is not None:
+            for idx, responseType in enumerate(self.responseType):
+                obj['responseType'][idx] = responseType.value
+        return obj
+
+    def __post_init__(self):
+        if isinstance(self.category, list):
+            self.category = [
+                Category(**c) if isinstance(c, dict) else c
+                for c in self.category
+            ]
+        if (
+            self.responseType is not None and
+            isinstance(self.responseType, list)
+        ):
+            self.responseType = [
+                ResponseType(**c) if isinstance(c, dict) else c
+                for c in self.responseType
+            ]
+        if isinstance(self.urgency, str):
+            self.urgency = Urgency(self.urgency)
+        if isinstance(self.severity, str):
+            self.severity = Severity(self.severity)
+        if isinstance(self.certainty, str):
+            self.certainty = Certainty(self.certainty)
+        if isinstance(self.eventCode, list):
+            self.eventCode = [
+                EventCode(**c) if isinstance(c, dict) else c
+                for c in self.eventCode
+            ]
+        if self.parameter is not None and isinstance(self.parameter, list):
+            self.parameter = [
+                Parameter(**c) if isinstance(c, dict) else c
+                for c in self.parameter
+            ]
+        if self.resource is not None and isinstance(self.resource, list):
+            self.resource = [
+                Resource(**c) if isinstance(c, dict) else c
+                for c in self.resource
+            ]
+        if self.area is not None and isinstance(self.area, list):
+            self.area = [
+                Area(**c) if isinstance(c, dict) else c
+                for c in self.area
+            ]

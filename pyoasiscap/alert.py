@@ -4,9 +4,9 @@ CAP v1.2
 
 ..  codeauthor:: Charles Blais
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from enum import Enum
 
@@ -72,3 +72,29 @@ class Alert:
     incidents: Optional[str] = field(default=None)
 
     info: List[Info] = field(default_factory=list)
+
+    def asdict(self) -> Dict:
+        '''
+        asdict is not able to convert enum there this routine will make sure
+        this happens
+        '''
+        obj = asdict(self)
+        obj['status'] = self.status.value
+        obj['msgType'] = self.msgType.value
+        obj['scope'] = self.scope.value
+        for idx, info in enumerate(self.info):
+            obj['info'][idx] = info.asdict()
+        return obj
+
+    def __post_init__(self):
+        if isinstance(self.status, str):
+            self.status = Status(self.status)
+        if isinstance(self.msgType, str):
+            self.msgType = MsgType(self.msgType)
+        if isinstance(self.scope, str):
+            self.scope = Scope(self.scope)
+        if isinstance(self.info, list):
+            self.info = [
+                Info(**c) if isinstance(c, dict) else c
+                for c in self.info
+            ]
